@@ -29,10 +29,20 @@ pipeline {
         stage('Check Environment') {
             steps {
                 sh '''
+                    echo "===== USER ====="
                     whoami
+
+                    echo "===== JAVA ====="
                     java -version
+
+                    echo "===== FLUTTER ====="
                     flutter --version
+
+                    echo "===== ANDROID SDK ====="
                     echo "ANDROID_HOME=$ANDROID_HOME"
+                    echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+                    echo "===== GIT ====="
                     git --version
                 '''
             }
@@ -47,20 +57,39 @@ pipeline {
 
         stage('Analyze Code') {
             steps {
-                echo 'Running Flutter static analysis...'
+                echo 'Running static analysis...'
                 sh 'flutter analyze'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running Flutter tests...'
+                sh 'flutter test'
+            }
+        }
+
+        stage('Build APK') {
+            steps {
+                echo 'Building release APK...'
+                sh 'flutter build apk --release'
             }
         }
 
     }
 
     post {
+
         success {
-            echo 'Step 3 completed successfully ✅'
+            echo 'Pipeline completed successfully ✅'
         }
 
         failure {
             echo 'Pipeline failed ❌'
+        }
+
+        always {
+            echo 'Pipeline finished.'
         }
     }
 }
