@@ -5,36 +5,74 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   flutter-build:
     runs-on: ubuntu-latest
 
     steps:
+
+      # 1. Get source code
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 2. Setup Java for Android/Gradle
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # 3. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.47.2'
           channel: stable
+          cache: true
 
-      - name: Check Flutter Version
-        run: flutter --version
+      # 4. Check environment
+      - name: Check Environment
+        run: |
+          java -version
+          flutter --version
 
+      # 5. Install dependencies
       - name: Install Dependencies
         run: flutter pub get
 
+      # 6. Static analysis
       - name: Analyze Code
         run: flutter analyze
 
+      # 7. Run tests
       - name: Run Tests
         run: flutter test
 
+      # 8. Build Android APK
       - name: Build APK
         run: flutter build apk --release
 
+      # 9. Store APK in GitHub Actions
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      # 10. Publish APK to GitHub Releases
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="actions-v1.0.${{ github.run_number }}"
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+
+          echo "Creating release: $TAG"
+
+          gh release create "$TAG" "$APK" \
+            --target "${{ github.sha }}" \
+            --title "Flutter App $TAG" \
+            --generate-notes
