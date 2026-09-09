@@ -45,15 +45,22 @@ pipeline {
             }
         }
 
+        stage('Analyze Code') {
+            steps {
+                echo 'Running Flutter static analysis...'
+                sh 'flutter analyze'
+            }
+        }
+
     }
 
     post {
         success {
-            echo 'Step 2 completed successfully ✅'
+            echo 'Step 3 completed successfully ✅'
         }
 
         failure {
-            echo 'Step 2 failed ❌'
+            echo 'Pipeline failed ❌'
         }
     }
 }
