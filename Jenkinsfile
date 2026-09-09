@@ -32,6 +32,9 @@ pipeline {
                     echo "===== USER ====="
                     whoami
 
+                    echo "===== HOST ====="
+                    hostname
+
                     echo "===== JAVA ====="
                     java -version
 
@@ -57,7 +60,7 @@ pipeline {
 
         stage('Analyze Code') {
             steps {
-                echo 'Running static analysis...'
+                echo 'Running Flutter static analysis...'
                 sh 'flutter analyze'
             }
         }
@@ -76,16 +79,27 @@ pipeline {
             }
         }
 
+        stage('Archive APK') {
+            steps {
+                echo 'Archiving APK artifact...'
+
+                archiveArtifacts(
+                    artifacts: 'build/app/outputs/flutter-apk/app-release.apk',
+                    fingerprint: true
+                )
+            }
+        }
+
     }
 
     post {
 
         success {
-            echo 'Pipeline completed successfully ✅'
+            echo 'Flutter CI pipeline completed successfully ✅'
         }
 
         failure {
-            echo 'Pipeline failed ❌'
+            echo 'Flutter CI pipeline failed ❌'
         }
 
         always {
